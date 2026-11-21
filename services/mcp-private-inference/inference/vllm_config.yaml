@@ -1,2 +1,9 @@
-model: deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B
+# Local / Air-Gapped vLLM OpenAI-Compatible Serving Config
+model: "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
+host: "0.0.0.0"
+port: 8001
 max_model_len: 4096
+gpu_memory_utilization: 0.85
+dtype: "auto"
+enforce_eager: false
+api_key: "local-vllm-airgapped"
