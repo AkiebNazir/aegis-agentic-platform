@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package aegis.gateway;
+
+option go_package = "github.com/AkiebNazir/aegis-agentic-platform/services/ai-gateway/pb;pb";
+
+service AgentOrchestrator {
+  rpc ProcessPrompt (PromptRequest) returns (PromptResponse);
+}
+
+message PromptRequest {
+  string request_id = 1;
+  string tenant_id = 2;
+  string prompt = 3;
+  bool use_graph_rag = 4;
+}
+
+message PromptResponse {
+  string answer = 1;
+  bool cache_hit = 2;
+  string source_agent = 3;
+  double latency_ms = 4;
+}

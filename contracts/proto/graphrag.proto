@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package aegis.graphrag;
+
+service GraphRAGEngine {
+  rpc RetrieveContext (RetrieveRequest) returns (RetrieveResponse);
+}
+
+message RetrieveRequest {
+  string query = 1;
+  int32 top_k = 2;
+}
+
+message RetrieveResponse {
+  string merged_context = 1;
+  repeated string graph_facts = 2;
+  repeated string vector_chunks = 3;
+  double latency_ms = 4;
+}

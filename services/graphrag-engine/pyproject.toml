@@ -1,0 +1,21 @@
+[project]
+name = "graphrag-engine"
+version = "0.1.0"
+description = "Hybrid Graph-Augmented RAG (Neo4j + ChromaDB + LangGraph)"
+requires-python = ">=3.11"
+dependencies = [
+    "langgraph>=0.2.50",
+    "neo4j>=5.26.0",
+    "chromadb>=0.5.20",
+    "sentence-transformers>=3.3.0",
+    "grpcio>=1.68.0",
+    "grpcio-tools>=1.68.0",
+    "fastapi>=0.115.0",
+    "uvicorn>=0.32.0",
+    "pydantic>=2.10.0",
+    "pytest>=8.3.0",
+]
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"

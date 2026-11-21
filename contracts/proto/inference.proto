@@ -1,0 +1,3 @@
+syntax = "proto3";
+package aegis.inference;
+option go_package = "aegis/contracts/inference";

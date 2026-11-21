@@ -1,0 +1,15 @@
+Metadata-Version: 2.4
+Name: graphrag-engine
+Version: 0.1.0
+Summary: Hybrid Graph-Augmented RAG (Neo4j + ChromaDB + LangGraph)
+Requires-Python: >=3.11
+Requires-Dist: langgraph>=0.2.50
+Requires-Dist: neo4j>=5.26.0
+Requires-Dist: chromadb>=0.5.20
+Requires-Dist: sentence-transformers>=3.3.0
+Requires-Dist: grpcio>=1.68.0
+Requires-Dist: grpcio-tools>=1.68.0
+Requires-Dist: fastapi>=0.115.0
+Requires-Dist: uvicorn>=0.32.0
+Requires-Dist: pydantic>=2.10.0
+Requires-Dist: pytest>=8.3.0

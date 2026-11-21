@@ -1,0 +1,19 @@
+[project]
+name = "agent-orchestrator"
+version = "0.1.0"
+description = "Autonomous Multi-Agent Orchestration & LangChain Evaluator-Optimizer Service"
+requires-python = ">=3.11"
+dependencies = [
+    "langchain-core>=1.0.0",
+    "langchain-openai>=1.0.0",
+    "langgraph>=1.0.0",
+    "pydantic>=2.10.0",
+    "grpcio>=1.68.0",
+    "grpcio-tools>=1.68.0",
+    "redis>=5.2.0",
+    "pytest>=8.3.0",
+]
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"

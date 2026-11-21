@@ -1,0 +1,134 @@
+name: aegis-agentic-platform
+
+services:
+  # =====================================================================
+  # BACKING INFRASTRUCTURE (Shared Data Stores & Optional GPU vLLM)
+  # =====================================================================
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    profiles: ["infra", "gateway", "orchestrator", "all"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  chromadb:
+    image: chromadb/chroma:latest
+    ports:
+      - "8000:8000"
+    profiles: ["infra", "gateway", "graphrag", "all"]
+
+  neo4j:
+    image: neo4j:5-community
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      - NEO4J_AUTH=neo4j/password123
+    profiles: ["infra", "graphrag", "all"]
+
+  # Optional: Enable with --profile gpu on NVIDIA GPU hosts
+  vllm:
+    image: vllm/vllm-openai:latest
+    ports:
+      - "8001:8000"
+    ipc: host
+    environment:
+      - VLLM_API_KEY=local-vllm-airgapped
+    command: >
+      --model deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B
+      --max-model-len 4096
+    profiles: ["gpu"]
+
+  # =====================================================================
+  # PROJECT 1: SECURE HIGH-THROUGHPUT AI GATEWAY (GOLANG)
+  # =====================================================================
+  ai-gateway:
+    build:
+      context: ../services/01-ai-gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - REDIS_ADDR=redis:6379
+      - SEMANTIC_CACHE_URL=http://graphrag-engine:8003
+      - ORCHESTRATOR_GRPC_ADDR=agent-orchestrator:50051
+    depends_on:
+      redis:
+        condition: service_healthy
+    profiles: ["gateway", "all"]
+
+  # =====================================================================
+  # PROJECT 2: ENTERPRISE MCP SERVERS & PRIVATE INFERENCE BRIDGE
+  # =====================================================================
+  mcp-go-bridge:
+    image: golang:1.22-alpine
+    working_dir: /app
+    volumes:
+      - ../services/mcp-private-inference/go-bridge:/app
+    command: ["go", "run", "main.go"]
+    ports:
+      - "8090:8090"
+    environment:
+      - PORT=8090
+    profiles: ["mcp", "all"]
+
+  mcp-server:
+    build:
+      context: ../services/mcp-private-inference
+      dockerfile: Dockerfile
+    environment:
+      - GO_BRIDGE_URL=http://mcp-go-bridge:8090
+      - GRAPHRAG_HTTP_URL=http://graphrag-engine:8003
+      - VLLM_BASE_URL=${VLLM_BASE_URL:-http://host.docker.internal:8001/v1}
+      - VLLM_API_KEY=${VLLM_API_KEY:-local-vllm-airgapped}
+    depends_on:
+      - mcp-go-bridge
+    stdin_open: true
+    tty: true
+    profiles: ["mcp", "all"]
+
+  # =====================================================================
+  # PROJECT 3: HYBRID GRAPH-AUGMENTED RAG ENGINE (NEO4J + CHROMADB)
+  # =====================================================================
+  graphrag-engine:
+    build:
+      context: ../services/graphrag-engine
+      dockerfile: Dockerfile
+    ports:
+      - "50052:50052"
+      - "8003:8003"
+    environment:
+      - GRPC_PORT=50052
+      - HTTP_PORT=8003
+      - NEO4J_URI=bolt://neo4j:7687
+      - NEO4J_USER=neo4j
+      - NEO4J_PASSWORD=password123
+      - CHROMA_HOST=chromadb
+      - CHROMA_PORT=8000
+      - AUTO_SEED=true
+    depends_on:
+      - neo4j
+      - chromadb
+    profiles: ["graphrag", "all"]
+
+  # =====================================================================
+  # PROJECT 4: AUTONOMOUS MULTI-AGENT & EVALUATOR ORCHESTRATOR
+  # =====================================================================
+  agent-orchestrator:
+    build:
+      context: ../services/agent-orchestrator
+      dockerfile: Dockerfile
+    ports:
+      - "50051:50051"
+    environment:
+      - GRPC_PORT=50051
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - GRAPHRAG_GRPC_ADDR=graphrag-engine:50052
+      - VLLM_BASE_URL=${VLLM_BASE_URL:-http://host.docker.internal:8001/v1}
+      - VLLM_API_KEY=${VLLM
